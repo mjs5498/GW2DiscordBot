@@ -58,7 +58,7 @@ public class RPSBotCode {
 		gw2api = new GuildWars2Api(new GuildWars2ApiDefaultConfigWithGodaddyFix());
 		//final String[] rpsMoves = {"Rock!", "Paper!", "Scissors!"};
 		//final String[] rpslsMoves = {"Rock!", "Paper!", "Scissors!", "Lizard!", "Spock!"};
-		
+		//
 		
 		//set up reading the stat file
 		try {
