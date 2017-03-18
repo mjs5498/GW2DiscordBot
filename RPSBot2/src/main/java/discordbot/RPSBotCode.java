@@ -631,15 +631,7 @@ public class RPSBotCode {
 										}
 									}
 								}
-                        		
-                        		
-                        		
-                        		
-                        		
-                        	}
-                        	else if(userMessage.contains("traits")) {
-                        		me.nithanim.gw2api.v2.api.characters.Character c = gw2api.characters().get("Alistaire Nightfall", "E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
-                        		
+	
                         	}
                         }
                         
@@ -675,5 +667,4 @@ public class RPSBotCode {
 				e.printStackTrace();
 			}
 	}
-
 }
