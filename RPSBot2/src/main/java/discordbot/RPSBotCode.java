@@ -8,12 +8,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Random;
-
-import javax.swing.plaf.synth.SynthSeparatorUI;
 
 import com.google.common.util.concurrent.FutureCallback;
 
@@ -28,9 +31,6 @@ import me.nithanim.gw2api.v2.api.characters.WornItem;
 import me.nithanim.gw2api.v2.api.currencies.CurrenciesResource;
 import me.nithanim.gw2api.v2.api.currencies.Currency;
 import me.nithanim.gw2api.v2.api.items.ItemInfo;
-import me.nithanim.gw2api.v2.api.specializations.Specialization;
-import me.nithanim.gw2api.v2.api.traits.Trait;
-import me.nithanim.gw2api.v2.common.Item;
 import me.nithanim.gw2api.v2.configs.GuildWars2ApiDefaultConfigWithGodaddyFix;
 
 public class RPSBotCode {
@@ -398,12 +398,128 @@ public class RPSBotCode {
                     	}
                         else if(userMessage.startsWith(".gw ")) {
                         	if(userMessage.contains("characters")) {
-                        		String[] characters = gw2api.characters().get("E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
-                        		String outMessage = "";
-                        		for(int i = 0; i < characters.length; i++) {
-                        			outMessage = outMessage + characters[i] + "\n";
-                        		}
-                        		message.reply(outMessage);
+                        		//sql vars
+                        		String apiKey = "";
+                        		ResultSet rs = null;
+                        		Connection con = null;
+                        		Statement statement = null;
+                        		String query = "SELECT * FROM APIKeys WHERE DiscordID='" + replyName + "'";
+                        		
+                        		//character vars
+                        		String[] characters;//gw2api.characters().get("E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
+                        		
+                        		try {
+                        			con = SQLConnector.getConnection();//connect
+									statement = con.createStatement();
+									rs = statement.executeQuery(query);//search DB for the user. we don't want to set again if they exist
+									//colNum = rsmd.getColumnCount();
+									if(rs.next()) { //if in database then process the command
+										apiKey = rs.getString("APIKey");
+										characters = gw2api.characters().get(apiKey);
+										String outMessage = "";
+		                        		for(int i = 0; i < characters.length; i++) {
+		                        			outMessage = outMessage + characters[i] + "\n";
+		                        		}
+		                        		message.reply(outMessage);
+										//message.reply("You are already in the database use '.gw api update' to change your API Key (feature coming soon)");
+									}
+									else { //user not in database so throw an error
+										//addResult = statement.executeUpdate(addString);
+										message.reply("You have not set up an API key. Please do so and try again");
+									}
+									
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} finally {
+									if (con != null) {
+										try {
+											con.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+								}	
+                        	}
+                        	else if(userMessage.contains("character set ")) {
+                        		//sql vars
+                        		String apiKey = "";
+                        		ResultSet rs = null;
+                        		Connection con = null;
+                        		Statement statement = null;
+                        		String query = "SELECT * FROM APIKeys WHERE DiscordID='" + replyName + "'";
+                        		String discord = "'" + replyName + "'";
+                        		String character = "'" + message.getContent().substring(18, message.getContent().length()) + "'";//gw2api.characters().get("E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
+                        		String addString = "UPDATE APIKeys SET LastCharacter =" + character + " WHERE DiscordID =" + discord +";";
+                        		int addResult = 0;
+                        		try {
+                        			con = SQLConnector.getConnection();//connect
+									statement = con.createStatement();
+									rs = statement.executeQuery(query);//search DB for the user. we don't want to set again if they exist
+									//colNum = rsmd.getColumnCount();
+									if(rs.next()) { //if in database then process the command
+										addResult = statement.executeUpdate(addString);
+										message.reply("Your character selection has been set to " + character);
+										//message.reply("You are already in the database use '.gw api update' to change your API Key (feature coming soon)");
+									}
+									else { //user not in database so throw an error
+										//addResult = statement.executeUpdate(addString);
+										message.reply("You have not set up an API key. Please do so and try again");
+									}
+									
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} finally {
+									if (con != null) {
+										try {
+											con.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+								}	
+                        	}
+                        	else if(userMessage.contains("api set ")) {
+                        		int addResult = 0;
+                        		ResultSet rs = null;
+                        		Connection con = null;
+                        		Statement statement = null;
+                        		int colNum = 0;
+                        		boolean rsEmpty = true;
+                        		String apiKey = "'" + message.getContent().substring(12, message.getContent().length()) + "'";//"'E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05'";
+                        		String discord = "'" + replyName + "'";
+                        		System.out.println(apiKey);
+                        		String query = "SELECT * FROM APIKeys WHERE DiscordID='" + replyName + "'";
+                        		String addString = "INSERT INTO APIKeys (DiscordID, APIKey) VALUES (" + discord + "," + apiKey + ");";
+                        		
+                        		
+                        		try {
+                        			con = SQLConnector.getConnection();//connect
+									statement = con.createStatement();
+									rs = statement.executeQuery(query);//search DB for the user. we don't want to set again if they exist
+									ResultSetMetaData rsmd = rs.getMetaData();
+									colNum = rsmd.getColumnCount();
+									if(rs.next()) { //if it has next that means the Discord user is already in our database
+										message.reply("You are already in the database use '.gw api update' to change your API Key (feature coming soon)");
+									}
+									else { //if rs doesn't have a next that means the user isn't in the database and we can add their key
+										addResult = statement.executeUpdate(addString);
+										message.reply("You have been added to the database!");
+									}
+									
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} finally {
+									if (con != null) {
+										try {
+											con.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+								}	
                         	}
                         	else if(userMessage.contains("wallet")) {
                         		CurrencyBelonging[] cb = gw2api.account().wallet("E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
@@ -450,29 +566,76 @@ public class RPSBotCode {
                         		outMessage = "";
                         	}
                         	else if(userMessage.contains("gear")) {
-                        		me.nithanim.gw2api.v2.api.characters.Character c = gw2api.characters().get("Alistaire Nightfall", "E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
-                        		WornItem[] wi = c.getEquipment();
-                        		String outMessage = "";
-                        		ItemInfo item;
-                        		int[] itemUpgrades;
-                        		int[] itemInfusion;
-                        		for(int i = 0; i < wi.length; i++) {
-                        			item = gw2api.items().get(wi[i].getId());
-                        			itemUpgrades = wi[i].getUpgrades();//gw2api.items().get(wi[i].getUpgrades());
-                        			itemInfusion = wi[i].getInfusions();//gw2api.items().get(wi[i].getInfusions());
-                        			outMessage = outMessage + item.getName() + " " + item.getRarity() + " ";
-                        			if(itemUpgrades!= null)
-                        				for(int j = 0; j < itemUpgrades.length; j++) {
-                        					
-                        					outMessage = " " + outMessage + gw2api.items().get(itemUpgrades[j]).getName();
-                        				}
-                        			if(itemInfusion!= null)
-	                        			for(int j = 0; j < itemInfusion.length; j++) {
-	                        				outMessage = " " + outMessage + gw2api.items().get(itemInfusion[j]).getName();
-	                        			}
-                        			outMessage = outMessage + "\n";
-                        		}
-                        		message.reply(outMessage);
+                        		message.reply("Please wait a moment while I wait for a server response");
+                        		String lastCharacter = "";
+                        		String apiKey = "";
+                        		ResultSet rs = null;
+                        		Connection con = null;
+                        		Statement statement = null;
+                        		String query = "SELECT * FROM APIKeys WHERE DiscordID='" + replyName + "'";
+                        		
+                        		//character vars
+                        		
+                        		try {
+                        			con = SQLConnector.getConnection();//connect
+									statement = con.createStatement();
+									rs = statement.executeQuery(query);//search DB for the user. we don't want to set again if they exist
+									//colNum = rsmd.getColumnCount();
+									if(rs.next()) { //if in database then process the command
+										lastCharacter = rs.getString("LastCharacter");
+										apiKey = rs.getString("APIKey");
+										
+										me.nithanim.gw2api.v2.api.characters.Character c = gw2api.characters().get(lastCharacter, apiKey);
+		                        		WornItem[] wi = c.getEquipment();
+		                        		
+										String outMessage = "";
+										
+										ItemInfo item;
+		                        		int[] itemUpgrades;
+		                        		int[] itemInfusion;
+		                        		for(int i = 0; i < wi.length; i++) {
+		                        			item = gw2api.items().get(wi[i].getId());
+		                        			itemUpgrades = wi[i].getUpgrades();//gw2api.items().get(wi[i].getUpgrades());
+		                        			itemInfusion = wi[i].getInfusions();//gw2api.items().get(wi[i].getInfusions());
+		                        			outMessage = outMessage + item.getName() + " " + item.getRarity() + " ";
+		                        			if(itemUpgrades!= null)
+		                        				for(int j = 0; j < itemUpgrades.length; j++) {
+		                        					
+		                        					outMessage = " " + outMessage + gw2api.items().get(itemUpgrades[j]).getName();
+		                        				}
+		                        			if(itemInfusion!= null)
+			                        			for(int j = 0; j < itemInfusion.length; j++) {
+			                        				outMessage = " " + outMessage + gw2api.items().get(itemInfusion[j]).getName();
+			                        			}
+		                        			outMessage = outMessage + "\n";
+		                        		}
+		                        		message.reply(outMessage);
+		                        		
+		                        		
+										//message.reply("You are already in the database use '.gw api update' to change your API Key (feature coming soon)");
+									}
+									else { //user not in database so throw an error
+										//addResult = statement.executeUpdate(addString);
+										message.reply("You have not set up an API key. Please do so and try again");
+									}
+									
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} finally {
+									if (con != null) {
+										try {
+											con.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+								}
+                        		
+                        		
+                        		
+                        		
+                        		
                         	}
                         	else if(userMessage.contains("traits")) {
                         		me.nithanim.gw2api.v2.api.characters.Character c = gw2api.characters().get("Alistaire Nightfall", "E8B70E10-CB14-8A47-8A34-CB14B33AB306D8E3941F-3397-4BA8-8632-9889C6CCEB05");
